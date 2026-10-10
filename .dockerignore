@@ -1,0 +1,6 @@
+.git
+screenshot.png
+node_modules
+.railway/node_modules
+.railway/package.json
+.railway/package-lock.json

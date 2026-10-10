@@ -1,0 +1,36 @@
+#!/bin/bash
+# DUNO: s6 service starting the XFCE desktop session on the Selkies X11 backend.
+# Modeled on the X11 path of the upstream lxqt service
+# (addons/desktop/services/lxqt/run in selkies-project/selkies).
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp/runtime-ubuntu}"
+until [ -f "${XDG_RUNTIME_DIR}/container-env" ]; do sleep 0.5; done
+# shellcheck disable=SC1091  # written by container-entrypoint.sh at startup
+. "${XDG_RUNTIME_DIR}/container-env"
+# What the session launches starts in its directory: the home, not this service's.
+cd "${HOME:-/home/ubuntu}" || true
+
+# START_XFCE=false runs only the display server (mirrors upstream START_LXQT).
+if [ "${START_XFCE:-true}" != "true" ] && [ "${START_XFCE:-true}" != "1" ]; then
+  echo "[xfce] START_XFCE is '${START_XFCE:-}'; desktop session parked (display server still runs)"
+  exec sleep infinity
+fi
+
+# XFCE is an X11 desktop; the Wayland backend is not supported by this layer.
+# Park instead of crash-looping so a misconfigured toggle stays a local failure.
+wayland="${SELKIES_WAYLAND:-false}"
+wayland="${wayland%%|*}"
+wayland="${wayland,,}"
+if [ "${wayland}" = "true" ] || [ "${wayland}" = "1" ]; then
+  echo "[xfce] SELKIES_WAYLAND=true is not supported by the XFCE layer; session parked (use the default X11 backend)" >&2
+  exec sleep infinity
+fi
+
+export DISPLAY="${DISPLAY:-:20}"
+until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done
+# A session started outside a display manager has nobody else to name the desktop.
+export XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:-XFCE}"
+export XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-x11}"
+# The base image carries LXQt menu defaults (XDG_MENU_PREFIX=lxqt-), which makes
+# the XFCE panel look for lxqt-applications.menu and show an empty menu.
+export XDG_MENU_PREFIX=xfce-
+exec dbus-launch --exit-with-session startxfce4
