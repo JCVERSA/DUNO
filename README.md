@@ -40,6 +40,8 @@ Puis ouvrir http://localhost:8080/ ( Selkies écoute sur `SELKIES_PORT`, `$PORT`
 
 `SELKIES_WAYLAND=true` n'est **pas** supporté par la couche XFCE (XFCE est un bureau X11) : garde le backend X11 par défaut.
 
+> Note : au démarrage, l'entrypoint filtre les variables d'environnement dont la valeur contient des caractères hors `[A-Za-z0-9_.,:/+@%=-]` (multilignes, espaces, `$()`, `<mails>`, …), car l'entrypoint Selkies les recopie telles quelles dans `container-env` et cela casse le démarrage du serveur. À prendre en compte pour `PASSWD` si tu actives l'auth (Railway injecte ce type de métadonnées git, elles sont écartées automatiquement).
+
 ## Sécurité — à lire
 
 L'accès est **libre, sans mot de passe** (comme l'ancien VNC) : quiconque connaît l'URL publique Railway contrôle le bureau et le Firefox dedans. Pour exiger un login :
@@ -56,6 +58,7 @@ PASSWD=un-vrai-mot-de-passe
 - **`/vnc.html` n'existe plus** : le client est en `/`, sans sous-chemin.
 - **Navigateur instable** : Selkies recommande `--shm-size=2g` en local (défaut Docker 64 Mo trop petit). Railway ne permet pas de régler `/dev/shm` : Firefox le tolère en général, mais les pages très lourdes peuvent en souffrir.
 - **Healthcheck Railway** : chemin `/`, timeout 300 s (le premier démarrage X + XFCE + Selkies est lent).
+- **Boucle `container-env ... not a valid identifier` + site injoignable** : c'était les métadonnées git multilignes injectées par Railway — l'entrypoint les filtre désormais avant le démarrage Selkies.
 
 ## Contenu du repo
 

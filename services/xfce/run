@@ -30,4 +30,7 @@ until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done
 # A session started outside a display manager has nobody else to name the desktop.
 export XDG_CURRENT_DESKTOP="${XDG_CURRENT_DESKTOP:-XFCE}"
 export XDG_SESSION_TYPE="${XDG_SESSION_TYPE:-x11}"
+# The base image carries LXQt menu defaults (XDG_MENU_PREFIX=lxqt-), which makes
+# the XFCE panel look for lxqt-applications.menu and show an empty menu.
+export XDG_MENU_PREFIX=xfce-
 exec dbus-launch --exit-with-session startxfce4
