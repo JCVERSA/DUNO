@@ -2,9 +2,9 @@
 #
 # Selkies base (X11/Xvfb, audio, GPU wiring, s6 supervision, Selkies server)
 # + XFCE desktop + Firefox. Single TCP port, WebSockets transport.
-# Railway-ready: listens on $PORT when injected, plain HTTP (the Railway
-# TCP proxy does not terminate TLS), open access like the previous VNC setup
-# (see README security note; set SELKIES_ENABLE_BASIC_AUTH=true + PASSWD
+# Railway-ready: listens on $PORT when injected, serves HTTPS (the Selkies
+# web client refuses a plain-HTTP origin), open access like the previous VNC
+# setup (see README security note; set SELKIES_ENABLE_BASIC_AUTH=true + PASSWD
 # to require a login).
 #
 # Follows the upstream "Building a desktop on it" pattern:
@@ -93,14 +93,19 @@ ENV USER=ubuntu
 ENV HOME=/home/ubuntu
 WORKDIR /home/ubuntu
 
-# Defaults: WebSockets on one port, plain HTTP (Railway TCP proxy forwards
-# raw TCP without TLS termination), open access like the previous VNC setup.
+# Defaults: WebSockets on one port, open access like the previous VNC setup.
 # All overridable with -e / Railway variables. The listening port itself is
 # resolved dynamically by the entrypoint: SELKIES_PORT, else $PORT (Railway),
 # else 8080.
 ENV START_XFCE="true"
 ENV SELKIES_MODE="websockets"
-ENV SELKIES_ENABLE_HTTPS="false"
+# Required by the web client: served over plain HTTP, Selkies refuses to start
+# ("requires a secure connection"). The image therefore terminates TLS itself
+# with a self-signed certificate, so the public URL must be opened as
+# https:// (the browser warning about the snakeoil cert is expected — bypass
+# it). Only a reverse proxy that terminates TLS in front of the container
+# (e.g. Railway's generated domain) allows setting this back to "false".
+ENV SELKIES_ENABLE_HTTPS="true"
 ENV SELKIES_ENABLE_BASIC_AUTH="false"
 
 EXPOSE 8080
