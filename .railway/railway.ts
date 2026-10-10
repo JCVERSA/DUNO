@@ -19,7 +19,7 @@ import { defineRailway, github, project, service } from "railway/iac";
 
 export default defineRailway(() => {
   const duno = service("duno", {
-    source: github("JCVERSA/DUNO", { branch: "main" }),
+    source: github("JCVERSA/DUNO", { branch: "arena/e55e54df-duno" }),
     // Dockerfile at the repo root is picked up automatically (no build/start
     // commands: the image defines its own ENTRYPOINT).
     healthcheck: "/",
