@@ -1,0 +1,4 @@
+#!/bin/bash
+# Restart backoff: without it a service that cannot run would respawn as fast
+# as it exits, leaking resources until unrelated services start failing.
+sleep 2
